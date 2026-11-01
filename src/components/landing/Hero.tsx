@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import { EVENT } from "@/lib/event";
 import type { PublicStats } from "@/lib/types";
 import { Countdown } from "./Countdown";
@@ -35,15 +34,6 @@ export function Hero({ stats }: { stats: PublicStats }) {
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            {stats.registration_open && left > 0 ? (
-              <Link href="/daftar" className="btn-primary px-8 py-4 text-base">
-                Daftarkan Komunitas →
-              </Link>
-            ) : (
-              <span className="btn-primary pointer-events-none px-8 py-4 text-base opacity-70">
-                {left === 0 ? "Kuota Penuh" : "Pendaftaran Ditutup"}
-              </span>
-            )}
             <a href="#bagan" className="btn border border-white/40 px-6 py-4 text-base text-white hover:bg-white/10">
               Lihat Sistem Lomba
             </a>

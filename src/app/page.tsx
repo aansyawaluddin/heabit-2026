@@ -17,7 +17,7 @@ export default async function HomePage() {
   const [stats, bracket] = await Promise.all([getPublicStats(), getPublicBracket()]);
   return (
     <>
-      <Navbar registrationOpen={stats.registration_open} />
+      <Navbar />
       <main>
         <Hero stats={stats} />
         <Marquee />

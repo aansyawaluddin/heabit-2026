@@ -13,7 +13,7 @@ const LINKS = [
   { href: "#galeri", label: "Galeri" },
 ];
 
-export function Navbar({ registrationOpen }: { registrationOpen: boolean }) {
+export function Navbar() {
   const [solid, setSolid] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -48,9 +48,6 @@ export function Navbar({ registrationOpen }: { registrationOpen: boolean }) {
         </ul>
 
         <div className="flex items-center gap-2">
-          <Link href="/daftar" className={`btn-light hidden sm:inline-flex ${registrationOpen ? "" : "pointer-events-none opacity-60"}`}>
-            {registrationOpen ? "Daftar Sekarang" : "Pendaftaran Ditutup"}
-          </Link>
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
@@ -76,9 +73,6 @@ export function Navbar({ registrationOpen }: { registrationOpen: boolean }) {
               </li>
             ))}
           </ul>
-          <Link href="/daftar" className="btn-light mt-3 w-full">
-            {registrationOpen ? "Daftar Sekarang" : "Pendaftaran Ditutup"}
-          </Link>
         </div>
       )}
     </header>

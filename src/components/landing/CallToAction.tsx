@@ -1,11 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { PublicStats } from "@/lib/types";
 
 export function CallToAction({ stats }: { stats: PublicStats }) {
   const left = Math.max(0, stats.quota - stats.registered);
   const pct = Math.min(100, Math.round((stats.registered / stats.quota) * 100));
-  const open = stats.registration_open && left > 0;
   return (
     <section className="bg-white pb-20 lg:pb-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -24,15 +22,6 @@ export function CallToAction({ stats }: { stats: PublicStats }) {
               <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/20">
                 <div className="h-full rounded-full bg-white" style={{ width: `${pct}%` }} />
               </div>
-            </div>
-            <div className="mt-8">
-              {open ? (
-                <Link href="/daftar" className="btn-primary px-8 py-4 text-base">
-                  Daftarkan Komunitas →
-                </Link>
-              ) : (
-                <span className="btn-primary pointer-events-none px-8 py-4 text-base opacity-70">{left === 0 ? "Kuota Penuh" : "Pendaftaran Ditutup"}</span>
-              )}
             </div>
           </div>
         </div>
