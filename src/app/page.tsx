@@ -5,17 +5,17 @@ import { Footer } from "@/components/landing/Footer";
 import { Hero } from "@/components/landing/Hero";
 import { Marquee } from "@/components/landing/Marquee";
 import { Navbar } from "@/components/landing/Navbar";
-import { getPublicBracket, getPublicStats } from "@/lib/supabase/public";
+import { getPublicBracket } from "@/lib/supabase/public";
 
 export const revalidate = 30;
 
 export default async function HomePage() {
-  const [stats, bracket] = await Promise.all([getPublicStats(), getPublicBracket()]);
+  const bracket = await getPublicBracket();
   return (
     <>
       <Navbar />
       <main>
-        <Hero stats={stats} />
+        <Hero />
         <Marquee />
         <About />
         <Categories />

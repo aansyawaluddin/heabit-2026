@@ -1,10 +1,8 @@
 import Image from "next/image";
 import { EVENT } from "@/lib/event";
-import type { PublicStats } from "@/lib/types";
 import { Countdown } from "./Countdown";
 
-export function Hero({ stats }: { stats: PublicStats }) {
-  const left = Math.max(0, stats.quota - stats.registered);
+export function Hero() {
   return (
     <section className="bg-hero relative overflow-hidden pb-16 pt-28 text-white lg:pb-24 lg:pt-36">
       <div className="bg-dots pointer-events-none absolute right-6 top-24 h-40 w-64 opacity-60 [mask-image:linear-gradient(135deg,transparent_15%,#000_70%)]" />
@@ -38,9 +36,6 @@ export function Hero({ stats }: { stats: PublicStats }) {
               Lihat Sistem Lomba
             </a>
           </div>
-          <p className="mt-4 text-sm font-semibold text-brand-ice">
-            {left > 0 ? `Sisa ${left} dari ${stats.quota} slot komunitas` : `Seluruh ${stats.quota} slot komunitas telah terisi`}
-          </p>
         </div>
 
         <div className="relative mx-auto w-full max-w-xl">
