@@ -1,6 +1,5 @@
 import { About } from "@/components/landing/About";
 import { Bracket } from "@/components/landing/Bracket";
-import { CallToAction } from "@/components/landing/CallToAction";
 import { Categories } from "@/components/landing/Categories";
 import { Footer } from "@/components/landing/Footer";
 import { Hero } from "@/components/landing/Hero";
@@ -21,7 +20,6 @@ export default async function HomePage() {
         <About />
         <Categories />
         <Bracket rows={bracket} />
-        <CallToAction stats={stats} />
       </main>
       <Footer />
     </>
