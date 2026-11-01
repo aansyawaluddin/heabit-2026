@@ -8,9 +8,6 @@ const LINKS = [
   { href: "#tentang", label: "Tentang" },
   { href: "#kategori", label: "Kategori" },
   { href: "#bagan", label: "Bagan" },
-  { href: "#hadiah", label: "Hadiah" },
-  { href: "#lokasi", label: "Lokasi" },
-  { href: "#galeri", label: "Galeri" },
 ];
 
 export function Navbar() {

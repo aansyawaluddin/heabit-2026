@@ -3,12 +3,9 @@ import { Bracket } from "@/components/landing/Bracket";
 import { CallToAction } from "@/components/landing/CallToAction";
 import { Categories } from "@/components/landing/Categories";
 import { Footer } from "@/components/landing/Footer";
-import { Gallery } from "@/components/landing/Gallery";
 import { Hero } from "@/components/landing/Hero";
-import { Location } from "@/components/landing/Location";
 import { Marquee } from "@/components/landing/Marquee";
 import { Navbar } from "@/components/landing/Navbar";
-import { Prizes } from "@/components/landing/Prizes";
 import { getPublicBracket, getPublicStats } from "@/lib/supabase/public";
 
 export const revalidate = 30;
@@ -24,9 +21,6 @@ export default async function HomePage() {
         <About />
         <Categories />
         <Bracket rows={bracket} />
-        <Prizes />
-        <Location />
-        <Gallery />
         <CallToAction stats={stats} />
       </main>
       <Footer />
