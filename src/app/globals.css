@@ -1,21 +1,70 @@
+@import "@fontsource/poppins/400.css";
+@import "@fontsource/poppins/500.css";
+@import "@fontsource/poppins/600.css";
+@import "@fontsource/poppins/700.css";
+@import "@fontsource/poppins/800.css";
+@import "@fontsource/poppins/800-italic.css";
+@import "@fontsource/poppins/900-italic.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-white font-sans text-brand-navy antialiased;
+}
+
+@layer components {
+  .display {
+    @apply font-black italic tracking-tight;
+  }
+  .kicker {
+    @apply inline-flex items-center gap-2 rounded-full bg-brand-navy px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-white;
+  }
+  .kicker::before {
+    content: "";
+    @apply h-2 w-2 rounded-full bg-brand-ice shadow-[0_0_0_4px_rgba(127,208,255,0.25)];
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-ice/60 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-brand-navy text-white hover:bg-brand-ink;
+  }
+  .btn-light {
+    @apply btn bg-white text-brand-navy hover:bg-brand-sky;
+  }
+  .btn-ghost {
+    @apply btn border border-brand-navy/15 bg-white text-brand-navy hover:border-brand-navy/40;
+  }
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+  .input {
+    @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-brand-navy placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/15;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-semibold text-brand-navy;
+  }
+  .card {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+  }
+  .bg-hero {
+    background:
+      radial-gradient(900px 520px at 80% 10%, rgba(255, 255, 255, 0.22), transparent 70%),
+      radial-gradient(700px 500px at 5% 70%, rgba(255, 255, 255, 0.12), transparent 70%),
+      linear-gradient(180deg, #3a8fd8 0%, #3385ce 55%, #2d78bd 78%, #1d3f63 100%);
+  }
+  .bg-dots {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.5) 2px, transparent 2.4px);
+    background-size: 18px 18px;
+  }
 }
