@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { drawAssign, removeEntry, resetStage, setFinalists, setRank } from "@/app/admin/actions";
 import { Spinner } from "@/components/Spinner";
 import { GROUP_LABEL, STAGES } from "@/lib/event";
 import type { DrawEntry, GroupCode, Stage } from "@/lib/types";
+import { Confetti } from "./Confetti";
 import { Wheel, type WheelHandle, type WheelItem } from "./Wheel";
 
 export interface DrawTeam {
@@ -32,7 +33,32 @@ export function DrawBoard({ approvedTeams, entries }: Props) {
   const [result, setResult] = useState<{ name: string; group: string } | null>(null);
   const [spinning, setSpinning] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [live, setLive] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [lastAdded, setLastAdded] = useState<string | null>(null);
   const wheelRef = useRef<WheelHandle>(null);
+
+  const enterLive = useCallback(() => {
+    setLive(true);
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  }, []);
+  const exitLive = useCallback(() => {
+    setLive(false);
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  }, []);
+
+  // keluar layar penuh lewat Esc browser → keluar mode live juga
+  useEffect(() => {
+    const onFs = () => !document.fullscreenElement && setLive(false);
+    document.addEventListener("fullscreenchange", onFs);
+    return () => document.removeEventListener("fullscreenchange", onFs);
+  }, []);
+
+  useEffect(() => {
+    if (!lastAdded) return;
+    const t = window.setTimeout(() => setLastAdded(null), 6000);
+    return () => window.clearTimeout(t);
+  }, [lastAdded]);
 
   const cfg = STAGES.find((s) => s.id === stage)!;
   const nameById = useMemo(() => new Map(approvedTeams.map((t) => [t.id, t.community_name])), [approvedTeams]);
@@ -72,9 +98,33 @@ export function DrawBoard({ approvedTeams, entries }: Props) {
     setSpinning(false);
     act(
       () => drawAssign(stage, item.id),
-      (d) => setResult({ name: item.label, group: GROUP_LABEL[d.group_code as GroupCode] }),
+      (d) => {
+        setResult({ name: item.label, group: GROUP_LABEL[d.group_code as GroupCode] });
+        setLastAdded(item.id);
+      },
     );
   }
+
+  // pintasan keyboard untuk operator live: Spasi = putar / lanjut, Esc = tutup
+  useEffect(() => {
+    const onKey = (ev: KeyboardEvent) => {
+      const tag = (ev.target as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || tag === "BUTTON") return;
+      if (result) {
+        if (ev.key === " " || ev.key === "Enter" || ev.key === "Escape") {
+          ev.preventDefault();
+          setResult(null);
+        }
+        return;
+      }
+      if (ev.key === " " && stage !== "final") {
+        ev.preventDefault();
+        wheelRef.current?.spin();
+      } else if (ev.key === "Escape" && live) exitLive();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [result, stage, live, exitLive]);
 
   const semiWinners = byStage("semifinal").filter((e) => e.rank === 1);
 
@@ -108,20 +158,54 @@ export function DrawBoard({ approvedTeams, entries }: Props) {
       </div>
 
       <p className="rounded-xl bg-brand-sky px-4 py-3 text-sm text-brand-navy">{STAGE_HELP[stage]}</p>
-      {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>}
+      {error && !live && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,460px)_1fr]">
+      <div
+        className={
+          live
+            ? "fixed inset-0 z-40 flex flex-col overflow-y-auto bg-gradient-to-br from-brand-ink via-brand-navy to-brand-deep p-4 sm:p-5 lg:overflow-hidden"
+            : ""
+        }
+      >
+        {/* bar kontrol: judul live + suara + mode live */}
+        <div className={`flex flex-wrap items-center gap-3 ${live ? "mb-3 shrink-0 text-white" : "mb-4"}`}>
+          {live && (
+            <div className="mr-auto">
+              <p className="text-xs font-bold tracking-[0.25em] text-brand-ice">● LIVE DRAW · HEABIT 2026</p>
+              <p className="display text-2xl sm:text-3xl">{cfg.label}</p>
+            </div>
+          )}
+          <button
+            onClick={() => setMuted((m) => !m)}
+            className={`rounded-full px-4 py-2 text-sm font-bold transition ${live ? "bg-white/10 hover:bg-white/20" : "bg-white ring-1 ring-slate-200 hover:ring-brand"} ${live ? "" : "ml-auto"}`}
+            aria-pressed={!muted}
+          >
+            {muted ? "🔇 Suara mati" : "🔊 Suara nyala"}
+          </button>
+          {live ? (
+            <button onClick={exitLive} className="btn-light px-4 py-2">
+              ✕ Keluar mode live
+            </button>
+          ) : (
+            <button onClick={enterLive} className="btn-primary px-4 py-2">
+              📺 Mode Live (layar penuh)
+            </button>
+          )}
+        </div>
+        {live && error && <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>}
+
+      <div className={`grid ${live ? "min-h-0 flex-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]" : "gap-6 lg:grid-cols-[minmax(0,460px)_1fr]"}`}>
         {/* kiri: roda atau final */}
-        <div className="card p-6">
+        <div className={`card ${live ? "flex min-h-0 flex-col p-4 lg:p-5" : "p-6"}`}>
           {stage !== "final" ? (
             <>
-              <div className="mb-4 flex items-center justify-between">
+              <div className={`flex items-center justify-between ${live ? "mb-2" : "mb-4"}`}>
                 <h2 className="text-lg font-extrabold text-brand-navy">Roda undian</h2>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
                   {pool.length} tim · {capacityLeft} slot kosong
                 </span>
               </div>
-              <Wheel ref={wheelRef} items={pool} disabled={pending || capacityLeft <= 0} onResult={onResult} onSpinStart={() => setSpinning(true)} />
+              <Wheel ref={wheelRef} items={pool} big={live} muted={muted} disabled={pending || capacityLeft <= 0} onResult={onResult} onSpinStart={() => setSpinning(true)} />
               {pool.length === 0 && (
                 <p className="mt-4 text-center text-sm text-slate-500">
                   {stage === "kualifikasi"
@@ -137,11 +221,14 @@ export function DrawBoard({ approvedTeams, entries }: Props) {
               <button
                 onClick={() => wheelRef.current?.spin()}
                 disabled={spinning || pending || pool.length === 0 || capacityLeft <= 0}
-                className="btn-primary mt-6 w-full py-4 text-base"
+                className={`btn-primary w-full text-base ${live ? "mt-3 py-3" : "mt-6 py-4"}`}
               >
                 {(spinning || pending) && <Spinner />}
                 {spinning ? "Memutar…" : pending ? "Menyimpan…" : "🎯 Putar Roda"}
               </button>
+              <p className={`mt-2 text-center text-xs text-slate-400 ${live ? "hidden" : ""}`}>
+                Tekan <kbd className="rounded border border-slate-300 bg-slate-50 px-1.5 font-sans">Spasi</kbd> untuk memutar
+              </p>
             </>
           ) : (
             <>
@@ -168,9 +255,9 @@ export function DrawBoard({ approvedTeams, entries }: Props) {
         </div>
 
         {/* kanan: grup */}
-        <div className="grid content-start gap-4">
+        <div className={`grid content-start ${live ? "min-h-0 gap-3 lg:overflow-y-auto" : "gap-4"}`}>
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-extrabold text-brand-navy">Bagan {cfg.label}</h2>
+            <h2 className={`text-lg font-extrabold ${live ? "text-white" : "text-brand-navy"}`}>Bagan {cfg.label}</h2>
             {stageEntries.length > 0 &&
               (!confirmReset ? (
                 <button onClick={() => setConfirmReset(true)} className="text-xs font-bold text-red-600 hover:underline">
@@ -198,29 +285,37 @@ export function DrawBoard({ approvedTeams, entries }: Props) {
               ))}
           </div>
 
-          <div className="grid gap-4">
+          <div className={`grid ${live ? "gap-3" : "gap-4"}`}>
             {cfg.groups.map((g) => {
               const list = stageEntries.filter((e) => e.group_code === g).sort((a, b) => a.position - b.position);
               return (
-                <div key={g} className="overflow-hidden rounded-2xl bg-gradient-to-br from-brand-ink via-brand-navy to-brand-deep p-4 text-white shadow-lg">
-                  <div className="mb-3 flex items-center justify-between">
-                    <h3 className="display text-2xl">{GROUP_LABEL[g]}</h3>
+                <div
+                  key={g}
+                  className={`overflow-hidden rounded-2xl bg-gradient-to-br from-brand-ink via-brand-navy to-brand-deep text-white shadow-lg ${live ? "p-3 ring-1 ring-white/10" : "p-4"}`}
+                >
+                  <div className={`flex items-center justify-between ${live ? "mb-2" : "mb-3"}`}>
+                    <h3 className={`display ${live ? "text-xl" : "text-2xl"}`}>{GROUP_LABEL[g]}</h3>
                     <span className="text-xs font-bold text-white/60">
                       {list.length}/{cfg.capacity}
                     </span>
                   </div>
-                  <ul className="space-y-2">
+                  <ul className={live ? "space-y-1.5" : "space-y-2"}>
                     {Array.from({ length: cfg.capacity }).map((_, i) => {
                       const e = list[i];
                       if (!e)
                         return (
-                          <li key={i} className="rounded-lg border border-dashed border-white/20 px-3 py-2 text-sm text-white/40">
+                          <li key={i} className={`rounded-lg border border-dashed border-white/20 px-3 text-sm text-white/40 ${live ? "py-1.5" : "py-2"}`}>
                             Slot {i + 1}
                           </li>
                         );
                       const advance = stage === "kualifikasi" ? e.rank !== null && e.rank <= 3 : e.rank === 1;
                       return (
-                        <li key={e.id} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${advance ? "bg-emerald-400/20 ring-1 ring-emerald-300/40" : "bg-white/10"}`}>
+                        <li
+                          key={e.id}
+                          className={`flex items-center gap-2 rounded-lg px-3 text-sm ${live ? "py-1" : "py-2"} ${advance ? "bg-emerald-400/20 ring-1 ring-emerald-300/40" : "bg-white/10"} ${
+                            e.team_id === lastAdded ? "animate-pop animate-flash bg-brand-ice/30" : ""
+                          }`}
+                        >
                           <span className="w-4 text-xs text-white/50">{i + 1}</span>
                           <span className="flex-1 truncate font-semibold">{teamName(e)}</span>
                           <select
@@ -258,16 +353,21 @@ export function DrawBoard({ approvedTeams, entries }: Props) {
           </div>
         </div>
       </div>
+      </div>
 
       {/* modal hasil */}
       {result && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-brand-ink/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" onClick={() => setResult(null)}>
-          <div className="bg-hero w-full max-w-md rounded-3xl p-8 text-center text-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <Confetti key={result.name} />
+          <div
+            className={`bg-hero w-full animate-pop rounded-3xl text-center text-white shadow-2xl ${live ? "max-w-2xl p-12" : "max-w-md p-8"}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <p className="text-xs font-bold tracking-[0.2em] text-brand-ice">HASIL UNDIAN</p>
-            <p className="display mt-3 text-4xl leading-tight">{result.name}</p>
+            <p className={`display mt-3 break-words leading-tight ${live ? "text-6xl" : "text-4xl"}`}>{result.name}</p>
             <p className="mt-4 text-white/80">masuk ke</p>
-            <p className="display mt-1 text-5xl text-brand-navy">{result.group}</p>
-            <button onClick={() => setResult(null)} className="btn-light mt-8 w-full">
+            <p className={`display mt-1 text-brand-navy ${live ? "text-7xl" : "text-5xl"}`}>{result.group}</p>
+            <button autoFocus onClick={() => setResult(null)} className="btn-light mt-8 w-full">
               Lanjut
             </button>
           </div>
