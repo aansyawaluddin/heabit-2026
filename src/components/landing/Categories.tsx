@@ -23,7 +23,7 @@ export function Categories() {
               <p className="mt-2 text-xl font-bold text-brand-ice">1 putaran ({EVENT.routeKm}) / pelari</p>
               <ul className="mt-6 space-y-3 text-sm text-white/90 sm:text-base">
                 <li className="flex gap-3"><Dot /><span>5 pelari utama: <b>3 putra + 2 putri</b></span></li>
-                <li className="flex gap-3"><Dot /><span>2 cadangan: <b>1 putra + 1 putri</b></span></li>
+                <li className="flex gap-3"><Dot /><span>Cadangan (opsional): <b>maks. 1 putra + 1 putri</b></span></li>
                 <li className="flex gap-3"><Dot /><span>Lintasan loop di sekitar Heavan 2.0, start &amp; finish tepat di depan Heavan Experience</span></li>
                 <li className="flex gap-3"><Dot /><span>Kualifikasi → Semifinal → Final</span></li>
               </ul>

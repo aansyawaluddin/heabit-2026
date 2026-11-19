@@ -33,9 +33,10 @@ export function RegistrationForm() {
   const [result, setResult] = useState<{ code: string } | null>(null);
 
   const busy = phase === "uploading" || phase === "saving";
-  const main = ROSTER.filter((r) => r.role === "utama");
-  const reserve = ROSTER.filter((r) => r.role === "cadangan");
-  const filled = useMemo(() => ROSTER.filter((r) => people[r.key].name.trim() && people[r.key].file).length, [people]);
+  const main = useMemo(() => ROSTER.filter((r) => r.role === "utama"), []);
+  const reserve = useMemo(() => ROSTER.filter((r) => r.role === "cadangan"), []);
+  const filledMain = useMemo(() => main.filter((r) => people[r.key].name.trim() && people[r.key].file).length, [people, main]);
+  const filledReserve = useMemo(() => reserve.filter((r) => people[r.key].name.trim() && people[r.key].file).length, [people, reserve]);
 
   function setPerson(key: RosterKey, v: PersonValue) {
     setPeople((p) => ({ ...p, [key]: v }));
@@ -52,6 +53,8 @@ export function RegistrationForm() {
     for (const r of ROSTER) {
       const p = people[r.key];
       const n = p.name.trim().replace(/\s+/g, " ");
+      // Cadangan opsional: boleh dikosongkan sepenuhnya, tapi jika diisi harus lengkap (nama + foto).
+      if (r.role === "cadangan" && !n && !p.file) continue;
       if (n.length < 2) e[r.key] = "Nama wajib diisi.";
       if (!p.file) e[r.key] = e[r.key] ? `${e[r.key]} Foto juga wajib.` : "Foto wajib diunggah.";
       else if (p.file.size > MAX_FILE_MB * 1024 * 1024) e[r.key] = `Ukuran foto maksimal ${MAX_FILE_MB} MB.`;
@@ -87,7 +90,8 @@ export function RegistrationForm() {
       setPhase("uploading");
       setProgress(0);
       const participants = [];
-      for (const [i, r] of ROSTER.entries()) {
+      const roster = ROSTER.filter((r) => r.role === "utama" || people[r.key].name.trim() || people[r.key].file);
+      for (const [i, r] of roster.entries()) {
         const p = people[r.key];
         let blob: Blob;
         try {
@@ -99,7 +103,7 @@ export function RegistrationForm() {
         const { error } = await supabase.storage.from(PHOTO_BUCKET).upload(path, blob, { contentType: "image/jpeg", upsert: false });
         if (error) throw new Error(`Gagal mengunggah foto ${r.label}: ${error.message}`);
         participants.push({ full_name: p.name.trim().replace(/\s+/g, " "), gender: r.gender, role: r.role, slot: r.slot, photo_path: path });
-        setProgress(Math.round(((i + 1) / ROSTER.length) * 100));
+        setProgress(Math.round(((i + 1) / roster.length) * 100));
       }
 
       setPhase("saving");
@@ -184,7 +188,7 @@ export function RegistrationForm() {
       </Section>
 
       {/* 3. Cadangan */}
-      <Section n={3} title="Pelari Cadangan" desc="1 cadangan putra dan 1 cadangan putri, masing-masing dengan foto.">
+      <Section n={3} title="Pelari Cadangan (Opsional)" desc="Boleh dikosongkan. Jika diisi, maksimal 1 cadangan putra dan 1 cadangan putri, masing-masing dengan nama dan foto.">
         <div className="grid gap-4 md:grid-cols-2">
           {reserve.map((r) => (
             <div key={r.key} data-error={Boolean(errors[r.key])}>
@@ -272,7 +276,12 @@ export function RegistrationForm() {
 
         <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-slate-500">
-            Kelengkapan peserta: <b className="text-brand-navy">{filled}/7</b>
+            Pelari utama: <b className="text-brand-navy">{filledMain}/5</b>
+            {filledReserve > 0 && (
+              <>
+                {" · "}Cadangan: <b className="text-brand-navy">{filledReserve}</b>
+              </>
+            )}
           </p>
           <button type="submit" disabled={busy} className="btn-primary px-8 py-4 text-base">
             {busy && <Spinner />}

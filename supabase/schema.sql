@@ -194,7 +194,7 @@ $$;
 --   "join_cheering": true, "cheering_count": 25,
 --   "participants": [
 --     {"full_name":"...", "gender":"L", "role":"utama", "slot":1, "photo_path":"registrations/<uuid>/L-utama-1.jpg"},
---     ... total 7 orang: 3 L utama, 2 P utama, 1 L cadangan, 1 P cadangan
+--     ... 5–7 orang: 3 L utama, 2 P utama, cadangan opsional (maks 1 L + 1 P)
 --   ]
 -- }
 create or replace function public.register_team(payload jsonb)
@@ -230,14 +230,14 @@ begin
   if v_phone like '0%' then v_phone := '62' || substr(v_phone, 2); end if;
   if v_phone like '8%' then v_phone := '62' || v_phone; end if;
 
-  if jsonb_typeof(v_parts) <> 'array' or jsonb_array_length(v_parts) <> 7 then
+  if jsonb_typeof(v_parts) <> 'array' or jsonb_array_length(v_parts) not between 5 and 7 then
     raise exception 'JUMLAH_PESERTA_TIDAK_VALID';
   end if;
 
   if (select count(*) from jsonb_array_elements(v_parts) e where e->>'gender' = 'L' and e->>'role' = 'utama') <> 3
   or (select count(*) from jsonb_array_elements(v_parts) e where e->>'gender' = 'P' and e->>'role' = 'utama') <> 2
-  or (select count(*) from jsonb_array_elements(v_parts) e where e->>'gender' = 'L' and e->>'role' = 'cadangan') <> 1
-  or (select count(*) from jsonb_array_elements(v_parts) e where e->>'gender' = 'P' and e->>'role' = 'cadangan') <> 1 then
+  or (select count(*) from jsonb_array_elements(v_parts) e where e->>'gender' = 'L' and e->>'role' = 'cadangan') > 1
+  or (select count(*) from jsonb_array_elements(v_parts) e where e->>'gender' = 'P' and e->>'role' = 'cadangan') > 1 then
     raise exception 'KOMPOSISI_PESERTA_TIDAK_VALID';
   end if;
 

@@ -30,8 +30,8 @@ export default async function DaftarPage() {
           <span className="kicker mt-10">Pendaftaran Komunitas</span>
           <h1 className="display mt-4 text-5xl leading-none sm:text-6xl">Daftarkan tim relay-mu.</h1>
           <p className="mt-4 max-w-2xl text-white/90">
-            {EVENT.dateLabel} · {EVENT.venue}, CPI Makassar. Setiap komunitas mendaftarkan 5 pelari utama (3 putra, 2 putri) dan 2 cadangan
-            (1 putra, 1 putri), lengkap dengan foto masing-masing.
+            {EVENT.dateLabel} · {EVENT.venue}, CPI Makassar. Setiap komunitas mendaftarkan 5 pelari utama (3 putra, 2 putri) lengkap dengan foto
+            masing-masing. Pelari cadangan (maks. 1 putra, 1 putri) bersifat opsional.
           </p>
           <div className="mt-6 inline-flex items-center gap-3 rounded-full bg-brand-navy/60 px-4 py-2 text-sm font-semibold ring-1 ring-white/20">
             <span className={`h-2.5 w-2.5 rounded-full ${open ? "bg-emerald-400" : "bg-red-400"}`} />

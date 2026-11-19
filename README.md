@@ -8,7 +8,7 @@ Next.js 15 (App Router) + Supabase untuk **HEABIT (Heavan Bitte) Relay & Cheerin
 - `/` — landing page: hero + hitung mundur, latar belakang, kategori (Relay & Cheering), **bagan sistem klasifikasi** (otomatis terisi dari hasil undian), hadiah podium, waktu/lokasi/denah rute, galeri, kontak.
 - `/daftar` — form pendaftaran komunitas:
   - nama komunitas, penanggung jawab + WhatsApp
-  - 3 pelari putra, 2 pelari putri, 1 cadangan putra, 1 cadangan putri (nama + **foto wajib** tiap orang)
+  - 3 pelari putra, 2 pelari putri (nama + **foto wajib**), cadangan **opsional** maks. 1 putra + 1 putri (jika diisi, nama + foto wajib)
   - validasi ikut cheering (Ya/Tidak) → jika Ya, wajib isi jumlah anggota cheering
   - foto dikompres di browser (maks 1200px) lalu diunggah ke Supabase Storage (bucket privat)
   - kuota & status buka/tutup dicek di server (aman dari pendaftaran ganda/berlebih)
@@ -69,5 +69,5 @@ public/img/                  foto & logo dari proposal
 
 ## Catatan keamanan
 - Data peserta & foto **tidak bisa dibaca publik** (RLS + bucket privat). Admin melihat foto lewat signed URL 1 jam.
-- Pendaftaran hanya lewat fungsi `register_team()` yang memvalidasi komposisi 3 putra + 2 putri + 2 cadangan, keberadaan foto, kuota, dan status pendaftaran.
+- Pendaftaran hanya lewat fungsi `register_team()` yang memvalidasi komposisi 3 putra + 2 putri + cadangan opsional (maks. 1 putra + 1 putri), keberadaan foto, kuota, dan status pendaftaran.
 - Landing page hanya membaca `public_stats()` dan `public_bracket()` (nama komunitas saja).
